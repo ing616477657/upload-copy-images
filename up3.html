@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>up3</title>
+</head>
+<body>
+<input type="file" multiple enctype="multipart/form-data">
+<p class="pic">
+</p>
+  </body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script type="text/javascript">
+    $("input").change(function(event ){    
+       const files=event.target.files[0];
+       const formdata=new FormData();
+       formdata.append("myfiles",files)
+       $.ajax({ 
+            url:"/file",
+            type:"post",
+            data:formdata,
+            processData: false,
+            contentType: false,    
+            dataType:"json",
+            success:function (data) {
+                console.log(data);
+            }
+        })
+})
+</script>
+</html>

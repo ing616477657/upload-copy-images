@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title>js</title>
+</head>
+<style type="text/css">
+</style>
+<body>
+	<div data-typeid='1' data-myname="jojo" data-id="1"  style="overflow: hidden;width: 800px;margin:0 auto;height: auto;" id="popBox" class="popBox"></div>
+	<div id="popBox1" class="popBox" data-typeid='2' data-id="2" data-name='jojo'></div>
+	<div data-id="2" data-typeid='3' class="popBox"></div>
+</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="http://127.0.0.1:8081/js.js"></script>
+<script type="text/javascript">
+	var setCopy1 = new setCopy({
+		popClass:'popBox',
+		addBtnText:function(dataKey){
+			// console.log(dataKey)
+			// 传入一个字段判断是初次上传还是已经上传
+			if(dataKey.id==1){
+				return '上传作品'
+			}else{
+				return '重新上传'
+			}
+		},
+		fileExp:function(fileData){
+			// console.log(fileData.type.match(/^image\//i))
+			if(fileData.type.match(/^image\//i)){
+				return true;
+			}else{
+				alert('请上传图片')
+				return false;
+			}
+		},
+		noCopImgMsg:function(){
+			alert('没有粘贴图片或上传文件')
+		},
+		getDataImg:function({dataImg,dataImgBs,speedFn,addListDom,upLoaded}){
+			// 直接获取事件对象自定义data数据
+			// console.log(this.typeid)
+			var _this = this;
+			// console.log(dataImg)
+	       const formdata=new FormData();
+	       formdata.append("myfiles",dataImg)
+	       $.ajax({
+	            url:"/file",
+	            type:"post",
+	            data:formdata,
+	            processData: false,
+	            contentType: false,
+	            dataType:"json",
+	            xhr: function(){
+	           	 myXhr = $.ajaxSettings.xhr();
+	             if(myXhr.upload){
+	           		myXhr.upload.addEventListener('progress',function(e){
+	           			var curr=e.loaded;
+	           			var total=e.total;
+	           			// console.log(curr,total)
+	           			// console.log(Math.floor(curr/total*100))
+	           			speedFn({s:Math.floor(curr/total*100)})
+	           		}, false);
+	           	   }
+	           	   return myXhr;
+	           	},
+	            success:function (data) {
+	                if(data.code==200){
+	                	alert(1)
+	                	_this.hideMask()
+						_this.clearViewImg()
+						//按钮回调重新赋值名称
+						// upLoaded({msg:'重新上传'})
+						var timestamp=new Date().getTime();
+						addListDom({imgSrc:dataImgBs,imgName:timestamp.toString()+dataImg.name,delId:timestamp})
+	                }
+	            }
+	        })
+		},
+		delImgItem:function({delId,delListDom}){
+			// console.log(delId)
+			var _this = this;
+			$.ajax({
+	            url:"/post",
+	            type:"post",
+	            // data:JSON.stringify({delId:delId}),
+	            processData: false,
+	            contentType: false,
+	            dataType:"json",
+	            success:function (data) {
+	            	// console.log(data)
+	                if(data.code==200){
+	                	alert('删除成功')
+	                	delListDom({delId:delId})
+	                }
+	            }
+	        })
+		},
+	})
+	// var setCopy = new setCopy({
+	// 	popBoxId:'popBox',
+	// 	btnWarnText:"改变默认提示1",
+	// 	// addBtnText:"",
+	// 	// ready:function(){},
+	// 	fileExp:function(fileData){
+	// 		// console.log(fileData.type.match(/^image\//i))
+	// 		if(fileData.type.match(/^image\//i)){
+	// 			return true;
+	// 		}else{
+	// 			alert('请上传图片')
+	// 			return false;
+	// 		}
+	// 	},
+	// 	getDataImg:function({dataImg,dataImgBs,speedFn,addListDom,upLoaded}){
+	// 		console.log(this.num)
+	// 		var _this = this;
+	// 		// console.log(dataImg)
+	//        const formdata=new FormData();
+	//        formdata.append("myfiles",dataImg)
+	//        $.ajax({
+	//             url:"/file",
+	//             type:"post",
+	//             data:formdata,
+	//             processData: false,
+	//             contentType: false,
+	//             dataType:"json",
+	//             xhr: function(){
+	//            	 myXhr = $.ajaxSettings.xhr();
+	//              if(myXhr.upload){
+	//            		myXhr.upload.addEventListener('progress',function(e){
+	//            			var curr=e.loaded;
+	//            			var total=e.total;
+	//            			// console.log(curr,total)
+	//            			// console.log(Math.floor(curr/total*100))
+	//            			speedFn({s:Math.floor(curr/total*100)})
+	//            		}, false);
+	//            	   }
+	//            	   return myXhr;
+	//            	},
+	//             success:function (data) {
+	//                 if(data.code==200){
+	//                 	alert(1)
+	//                 	_this.hideMask()
+	// 					_this.clearViewImg()
+	// 					//按钮回调重新复制名称
+	// 					upLoaded({msg:'重新上传'})
+	// 					/*var timestamp=new Date().getTime();
+	// 					addListDom({imgSrc:dataImgBs,imgName:timestamp.toString()+dataImg.name,delId:timestamp})*/
+	//                 }
+	//             }
+	//         })
+	// 		/*// ajax-process
+	// 		var s =0;
+	// 		var t = setInterval(function(){
+	// 			if(s<100){
+	// 				s++
+	// 				speedFn({s:s})
+	// 			} else {
+	// 				alert('上传成功')
+	// 				clearInterval(t)
+	// 				_this.hideMask()
+	// 				_this.clearViewImg()
+	// 				speedFn({s:0})
+	// 				console.log(1)
+	// 				var timestamp=new Date().getTime();
+	// 				addListDom({imgSrc:dataImgBs,imgName:timestamp.toString()+dataImg.name,delId:timestamp})
+	// 			}
+	// 		},10)
+	// 		// ajax-success*/
+	// 	},
+	// 	delImgItem:function({delId,delListDom}){
+	// 		// console.log(delId)
+	// 		var _this = this;
+	// 		$.ajax({
+	//             url:"/post",
+	//             type:"post",
+	//             // data:JSON.stringify({delId:delId}),
+	//             processData: false,
+	//             contentType: false,
+	//             dataType:"json",
+	//             success:function (data) {
+	//             	// console.log(data)
+	//                 if(data.code==200){
+	//                 	alert('删除成功')
+	//                 	delListDom({delId:delId})
+	//                 }
+	//             }
+	//         })
+	// 		// ajax-process
+
+	// 		// ajax-success
+	// 		// delListDom({delId:delId})
+	// 	},
+	// 	noCopImgMsg:function(){
+	// 		alert('没有粘贴图片或上传文件')
+	// 	},
+	// 	// strongDom:function(dataImg){
+	// 	// 	// 自定义增强dom-获取
+	// 	// 	console.log(1)
+	// 	// }
+	// })
+</script>
+</html>
